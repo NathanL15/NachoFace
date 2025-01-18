@@ -1,5 +1,6 @@
 .ipynb_checkpoints
 .venv
-./model/vggface2/*
-./model/vggface2_preprocessed/*
-./.*
+model/vggface2/*
+model/vggface2_preprocessed/*
+.*
+model/__pycache__
