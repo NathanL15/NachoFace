@@ -117,8 +117,6 @@ def recognize_face(model, test_image, known_embeddings, known_labels):
 
     return predicted_label
 
-
-
 if __name__ == '__main__':
     torch.manual_seed(1)
     
@@ -141,12 +139,12 @@ if __name__ == '__main__':
         lr=LEARNING_RATE
     )
     
-    triplet_loss_fn = capsule.module.compute_triplet_loss
+    triplet_loss_fn = capsule_net.module.compute_triplet_loss
     
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     for e in range(1, N_EPOCHS + 1):
         train_triplet(capsule_net, optimizer, vgg.train_loader, e,  triplet_loss_fn)
-        scheduler.step()
         test(capsule_net, vgg.test_loader, e)
+        scheduler.step()
 
     save_model(capsule_net, "final_capsule_net_weights.pth")
