@@ -17,6 +17,7 @@ debugpy==1.8.12
 decorator==5.1.1
 defusedxml==0.7.1
 executing==2.1.0
+facenet-pytorch==2.6.0
 fastjsonschema==2.21.1
 filelock==3.16.1
 fqdn==1.5.1
@@ -26,6 +27,7 @@ httpcore==1.0.7
 httpx==0.28.1
 idna==3.10
 ipykernel==6.29.5
+ipynb==0.5.1
 ipython==8.31.0
 isoduration==20.11.0
 jedi==0.19.2
@@ -54,11 +56,13 @@ nest-asyncio==1.6.0
 networkx==3.4.2
 notebook==7.3.2
 notebook_shim==0.2.4
+numpy==1.26.4
 overrides==7.7.0
 packaging==24.2
 pandocfilters==1.5.1
 parso==0.8.4
 pexpect==4.9.0
+pillow==10.2.0
 platformdirs==4.3.6
 prometheus_client==0.21.1
 prompt_toolkit==3.0.48
@@ -85,8 +89,10 @@ stack-data==0.6.3
 sympy==1.13.1
 terminado==0.18.1
 tinycss2==1.4.0
-torch==2.5.1
+torch==2.2.2
+torchvision==0.17.2
 tornado==6.4.2
+tqdm==4.67.1
 traitlets==5.14.3
 types-python-dateutil==2.9.0.20241206
 typing_extensions==4.12.2
