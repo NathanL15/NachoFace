@@ -110,7 +110,7 @@ class CapsNet(nn.Module):
             self.primary_capsules = PrimaryCaps()
             self.digit_capsules = DigitalCaps()
             self.decoder = Decoder()
-            self.embedding_layer = nn.Linear(16 * 10, 128)  # embedding size 128
+            self.embedding_layer = nn.Linear(16 * 10, 128)
 
     def forward(self, data):
         output = self.digit_capsules(self.primary_capsules(self.conv_layer(data)))
