@@ -1,129 +1,66 @@
 "use client";
 
-import Image from "next/image";
-import { useRef, useEffect, useState } from "react";
-import axios from "axios";
+import React, { useRef, useEffect } from "react";
 
-const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess }) => {
+export default function Camera({ onFramesCaptured }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [frames, setFrames] = useState([]);
-  // const [cameraPermission, setCameraPermission] = useState(false);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false,
-      });
-
-      if (videoRef.current) {
-        console.log("set loading to false");
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play();
-        };
-      }
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      setIsCamera(false);
-      // setCameraPermission(false);
-    }
-  };
-
-  const captureFrame = () => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-
-      // Set canvas size to match video
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-
-      // Draw the current video frame onto the canvas
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-      // Get the captured frame as a data URL (image format)
-      const dataURL = canvas.toDataURL("image/png");
-      // console.log("Captured Image");
-      return dataURL;
-    }
-    return null;
-  };
-
-  const startCapture = () => {
-    let capturedFrames = [];
-    let captureCount = 0;
-
-    if (!isCamera) {
-      const intervalId = setInterval(() => {
-        if (captureCount >= 10) {
-          clearInterval(intervalId);
-          if (videoRef.current) {
-            videoRef.current.pause(); // Pause the video
-          }
-
-          // Save the captured frames to state
-          setFrames(capturedFrames);
-
-          // Send the frames via POST request
-          sendPostRequest(capturedFrames);
-          return;
-        }
-
-        const frame = captureFrame();
-        if (frame) {
-          capturedFrames.push(frame);
-        }
-        captureCount++;
-      }, 1000); // Capture one frame every second
-    }
-  };
-
-  const sendPostRequest = async (frames) => {
-    try {
-      console.log("Following frames to send:", frames);
-      // const response = await axios.post("https://example.com/api/upload", {
-      //   frames, // Sending an array of captured frames
-      // });
-      const response = { status: "success" };
-
-      if (response.status == "failed") {
-        setIsCamera(false);
-      } else {
-        setIsSuccess(true);
-      }
-    } catch (error) {
-      console.error("Error uploading frames:", error);
-      setIsCamera(false);
-    }
-  };
-
+  // Start the video stream
   useEffect(() => {
-    const init = async () => {
-      await startCamera(); // Start the camera
-      startCapture(); // Start capturing frames
+    const startVideo = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.error("Error accessing webcam:", err);
+      }
     };
-    init();
+
+    startVideo();
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
+      // Stop the video stream on unmount
+      if (videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
 
+  // Capture 10 frames from the video
+  const captureFrames = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const frames = [];
+
+    for (let i = 0; i < 10; i++) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const frame = canvas.toDataURL("image/jpeg");
+      frames.push(frame);
+      await new Promise((resolve) => setTimeout(resolve, 100)); // Wait 100ms between captures
+    }
+
+    onFramesCaptured(frames); // Pass frames back to parent
+  };
+
   return (
     <div>
-      <video
-        className="mb-5"
-        ref={videoRef}
-        style={{ width: "100%", height: "auto" }}
-      />
-      <canvas ref={canvasRef} style={{ display: "none" }} />
+      <video ref={videoRef} autoPlay muted className="w-full h-auto" />
+      <canvas
+        ref={canvasRef}
+        width="320"
+        height="240"
+        style={{ display: "none" }}
+      ></canvas>
+      <button
+        onClick={captureFrames}
+        className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+      >
+        Capture Frames
+      </button>
     </div>
   );
-};
-
-export default Camera;
+}

@@ -1,73 +1,57 @@
 "use client";
 
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Camera from "./Camera";
-import Link from "next/link";
-import { RiExternalLinkLine } from "@remixicon/react";
 
-function FaceModal({ handleModalClose }) {
-  // const [detectText, setDetectText] = useState(
-  //   "Hold tight! Detecting your face...."
-  // );
+export default function FaceModal({ handleModalClose }) {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
 
-  // const [isLoading, setIsLoading] = useState(true);
+  const handleFramesCaptured = async (frames) => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/face-id", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mode: "login", frames }),
+      });
 
-  const [isCamera, setIsCamera] = useState(true);
-  const [isSuccess, setIsSuccess] = useState(false);
+      const data = await response.json();
+      setResult(data);
+    } catch (error) {
+      console.error("Error during face recognition:", error);
+      setResult({ error: "An error occurred. Please try again." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="w-11/12 max-w-lg flex flex-col items-center px-8 py-12 rounded-md shadow-md bg-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-      <div className="mb-10 text-center">
-        <h3 className="heading-xs mb-2">
-          {isSuccess
-            ? "Success!"
-            : isCamera
-            ? "Look directly at the camera"
-            : "Face detection unsuccessful"}
-        </h3>
-
-        {!isCamera && (
-          <Link href="/" className="text-primary flex justify-center">
-            View troubleshooting tips <RiExternalLinkLine />
-          </Link>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white p-5 rounded shadow-lg w-full max-w-md">
+        <h2 className="text-lg font-bold mb-4">Log In with Face ID</h2>
+        <Camera onFramesCaptured={handleFramesCaptured} />
+        <button
+          onClick={handleModalClose}
+          className="bg-gray-500 text-white px-4 py-2 rounded mt-4"
+        >
+          Close
+        </button>
+        {loading && <p className="text-gray-500 mt-2">Processing...</p>}
+        {result && (
+          <div className="mt-4">
+            {result.error ? (
+              <p className="text-red-500">{result.error}</p>
+            ) : result.match ? (
+              <p className="text-green-500">Login successful!</p>
+            ) : (
+              <p className="text-red-500">No match found.</p>
+            )}
+          </div>
         )}
       </div>
-
-      {isSuccess ? (
-        <Image
-          src="/checkmark.svg"
-          alt="Checkmark"
-          className="mb-10"
-          width={100}
-          height={100}
-        />
-      ) : isCamera ? (
-        <Camera
-          setIsCamera={setIsCamera}
-          camera={isCamera}
-          setIsSuccess={setIsSuccess}
-          isSuccess={setIsSuccess}
-        />
-      ) : (
-        <>
-          <Image
-            src="/detect-face-failed.svg"
-            width={100}
-            height={100}
-            alt="failed to face"
-            className="mb-10"
-          />
-        </>
-      )}
-      <button
-        onClick={handleModalClose}
-        className="w-full border-primary border py-3 text-primary"
-      >
-        Cancel
-      </button>
     </div>
   );
 }
-
-export default FaceModal;

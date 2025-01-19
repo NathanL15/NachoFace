@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@remixicon/react": "^4.6.0",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "axios": "^1.7.9",
     "next": "15.1.5",
     "react": "^19.0.0",
