@@ -6,7 +6,7 @@ import Camera from "./Camera";
 import Link from "next/link";
 import { RiExternalLinkLine } from "@remixicon/react";
 
-function FaceModal({ handleModalClose }) {
+function FaceModal({ handleModalClose, from }) {
   // const [detectText, setDetectText] = useState(
   //   "Hold tight! Detecting your face...."
   // );
@@ -48,6 +48,7 @@ function FaceModal({ handleModalClose }) {
           camera={isCamera}
           setIsSuccess={setIsSuccess}
           isSuccess={setIsSuccess}
+          from={from}
         />
       ) : (
         <>

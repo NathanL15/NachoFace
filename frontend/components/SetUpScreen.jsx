@@ -60,7 +60,9 @@ function SetUpScreen() {
                   </button>
                 </div>
               </div>
-              {modalOpen && <FaceModal handleModalClose={handleModalClose} />}
+              {modalOpen && (
+                <FaceModal handleModalClose={handleModalClose} from={"setup"} />
+              )}
             </>
           ) : (
             <>

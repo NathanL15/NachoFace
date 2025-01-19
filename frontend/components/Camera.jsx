@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 import axios from "axios";
 
-const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess }) => {
+const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess, from }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [frames, setFrames] = useState([]);
@@ -84,11 +84,21 @@ const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess }) => {
   };
 
   const sendPostRequest = async (frames) => {
+    console.log("Following frames to send:", frames);
     try {
-      console.log("Following frames to send:", frames);
-      // const response = await axios.post("https://example.com/api/upload", {
-      //   frames, // Sending an array of captured frames
-      // });
+      if (from == "setup") {
+        //For registering reference endpoint
+        // const response = await axios.post("https://example.com/api/register", {
+        //   frames, // Sending an array of captured frames
+        // });
+      } else {
+        //For signing in endpoint
+        // const response = await axios.post("https://example.com/api/sign-in", {
+        //   frames, // Sending an array of captured frames
+        // });
+      }
+
+      //Fake responses for testing front-end
       const response = { status: "success" };
 
       if (response.status == "failed") {

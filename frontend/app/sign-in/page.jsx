@@ -79,7 +79,9 @@ function Page() {
           </div>
         </div>
       </section>
-      {modalOpen && <FaceModal handleModalClose={handleModalClose} />}
+      {modalOpen && (
+        <FaceModal handleModalClose={handleModalClose} from={"sign-in"} />
+      )}
     </>
   );
 }
