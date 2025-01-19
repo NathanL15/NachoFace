@@ -3,13 +3,21 @@ import tensorflow as tf
 import numpy as np
 import base64
 from PIL import Image
+import os
 import io
 
 app = Flask(__name__)
 
 # TensorFlow Lite interpreter
 interpreter = None
-reference_embeddings = []  # Temporary storage for reference embeddings
+
+# Directories for storing images
+REFERENCE_DIR = "images/reference/"
+CURRENT_DIR = "images/current/"
+
+# Ensure directories exist
+os.makedirs(REFERENCE_DIR, exist_ok=True)
+os.makedirs(CURRENT_DIR, exist_ok=True)
 
 
 def load_model():
@@ -62,49 +70,75 @@ def calculate_similarity(embedding1, embedding2):
 @app.route("/register", methods=["POST"])
 def register():
     """
-    Register a user by storing reference embeddings.
+    Save reference images and store their embeddings.
     """
-    global reference_embeddings
     data = request.get_json()
 
     if "frames" not in data or len(data["frames"]) != 10:
         return jsonify({"error": "Invalid input. Provide 10 frames."}), 400
 
     load_model()
-    reference_embeddings = [
-        predict_embedding(preprocess_base64_image(frame))
-        for frame in data["frames"]
-    ]
+    reference_embeddings = []
 
-    return jsonify({"message": "Registration successful"})
+    for i, frame in enumerate(data["frames"]):
+        # Save image to reference directory
+        decoded_image = base64.b64decode(frame.split(",")[1])
+        with open(os.path.join(REFERENCE_DIR, f"reference_{i}.jpg"), "wb") as f:
+            f.write(decoded_image)
+
+        # Process and store embedding
+        image_tensor = preprocess_base64_image(frame)
+        embedding = predict_embedding(image_tensor)
+        reference_embeddings.append(embedding)
+
+    # Save embeddings as a NumPy array
+    np.save(os.path.join(REFERENCE_DIR, "reference_embeddings.npy"), reference_embeddings)
+
+    return jsonify({"message": "Reference images registered successfully"})
 
 
 @app.route("/login", methods=["POST"])
 def login():
     """
-    Log in a user by comparing embeddings with reference data.
+    Save current images and compare their embeddings with reference embeddings.
     """
-    global reference_embeddings
     data = request.get_json()
 
     if "frames" not in data or len(data["frames"]) != 10:
         return jsonify({"error": "Invalid input. Provide 10 frames."}), 400
 
-    if not reference_embeddings:
-        return jsonify({"error": "No reference embeddings found. Register first."}), 400
+    # Check if reference embeddings exist
+    embeddings_path = os.path.join(REFERENCE_DIR, "reference_embeddings.npy")
+    if not os.path.exists(embeddings_path):
+        return jsonify({"error": "No reference data found. Please register first."}), 400
+
+    # Load reference embeddings
+    reference_embeddings = np.load(embeddings_path, allow_pickle=True)
 
     load_model()
     matches = 0
-    for frame in data["frames"]:
-        login_embedding = predict_embedding(preprocess_base64_image(frame))
+
+    for i, frame in enumerate(data["frames"]):
+        # Save image to current directory
+        decoded_image = base64.b64decode(frame.split(",")[1])
+        with open(os.path.join(CURRENT_DIR, f"current_{i}.jpg"), "wb") as f:
+            f.write(decoded_image)
+
+        # Process and compare embeddings
+        image_tensor = preprocess_base64_image(frame)
+        current_embedding = predict_embedding(image_tensor)
+
         for ref_embedding in reference_embeddings:
-            similarity = calculate_similarity(login_embedding, ref_embedding)
-            if similarity > 0.8:  # Threshold for similarity
+            similarity = calculate_similarity(current_embedding, ref_embedding)
+            if similarity > 0.8:  # Example threshold
                 matches += 1
                 break
 
-    is_match = matches >= 7  # At least 7/10 frames must match
-    return jsonify({"match": is_match, "message": "Login successful" if is_match else "No match found."})
+    is_match = matches >= 7  # Require at least 7/10 frames to match
+    return jsonify({
+        "match": is_match,
+        "message": "Login successful" if is_match else "No match found."
+    })
 
 
 if __name__ == "__main__":
