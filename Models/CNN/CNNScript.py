@@ -20,13 +20,12 @@ def load_image(image_path):
 
 def load_model(model_path):
     """
-    Load a TensorFlow Lite model for inference.
+    Load a TensorFlow Lite model for inference from the file directly.
     """
-    with open(model_path, 'rb') as f:
-        model_content = f.read()
-    interpreter = tf.lite.Interpreter(model_content=model_content)
+    interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
     return interpreter
+
 
 def predict(interpreter, image):
     """
@@ -67,7 +66,7 @@ if __name__ == "__main__":
     print("Current Directory:", os.getcwd())
     model_path = os.path.join('Models', 'CNN', 'model', 'cnn_model.tflite')
     reference_images_path = os.path.join('Models', 'Images', 'Reference')
-    current_image_path = os.path.join('Models', 'Images', 'Current', 'current.jpg')
+    current_image_path = os.path.join('Models', 'Images', 'Current', 'current1.jpg')
 
     # Debugging prints
     print("Model path:", model_path)
