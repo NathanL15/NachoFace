@@ -8,6 +8,7 @@ const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [frames, setFrames] = useState([]);
+  const [isCapturing, setIsCapturing] = useState(false);
   // const [cameraPermission, setCameraPermission] = useState(false);
 
   const startCamera = async () => {
@@ -65,12 +66,14 @@ const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess }) => {
 
           // Save the captured frames to state
           setFrames(capturedFrames);
+          setIsCapturing(false);
 
           // Send the frames via POST request
           sendPostRequest(capturedFrames);
           return;
         }
 
+        setIsCapturing(true);
         const frame = captureFrame();
         if (frame) {
           capturedFrames.push(frame);
@@ -117,10 +120,13 @@ const Camera = ({ setIsCamera, isCamera, isSuccess, setIsSuccess }) => {
   return (
     <div>
       <video
-        className="mb-5"
+        className="mb-2"
         ref={videoRef}
         style={{ width: "100%", height: "auto" }}
       />
+      <p className="text-center text-primary mb-5">
+        {isCapturing && "Capturing face..."}
+      </p>
       <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
   );
